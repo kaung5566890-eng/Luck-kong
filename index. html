@@ -1,0 +1,3079 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Center</title>
+    
+    <!-- PWA Features -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pyidaungsu', 'Myanmar Text', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Settings Button */
+        .settings-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 2000;
+            background: linear-gradient(135deg, #ff9900, #ff6600);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .settings-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 95%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .settings-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff9900;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .settings-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #e1e8ed;
+        }
+
+        .settings-section h3 {
+            color: #0066cc;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .volume-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: bold;
+            color: #0066cc;
+        }
+
+        .close-settings {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Admin Modal Styles */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .admin-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #cc0000;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .admin-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .admin-tab.active {
+            color: #0066cc;
+            border-bottom-color: #0066cc;
+        }
+
+        .admin-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #e1e8ed;
+        }
+
+        .admin-section h3 {
+            color: #0066cc;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .user-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-phone {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .user-balance {
+            color: #ff9900;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .admin-input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 120px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .add-balance-btn {
+            background: #00cc66;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .deduct-balance-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e1e8ed;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0066cc;
+            margin-top: 5px;
+        }
+
+        .close-admin {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .transaction-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-type.deposit {
+            color: #00cc66;
+            font-weight: bold;
+        }
+
+        .transaction-type.withdraw {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .transaction-type.pending {
+            color: #ff9900;
+            font-weight: bold;
+        }
+
+        /* Login Page */
+        #loginPage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 20px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .register-link {
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            font-size: 20px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .nav-btn.active {
+            color: #0066cc;
+            font-weight: bold;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            padding: 20px;
+            padding-bottom: 80px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Home Page */
+        .home-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .home-title {
+            font-size: 24px;
+            color: #0066cc;
+            margin-bottom: 15px;
+        }
+
+        .balance-display {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 10px;
+            color: #ff9900;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .game-btn {
+            width: 100%;
+            padding: 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+
+        /* Wallet Page */
+        .wallet-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .wallet-title {
+            font-size: 24px;
+            color: #0066cc;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-section {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            color: #ff9900;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #0066cc;
+            margin: 20px 0 10px 0;
+        }
+
+        .payment-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .payment-detail {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        .confirm-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .ref-input-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ref-input {
+            width: 100px;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .amount-input {
+            width: 120px;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .withdraw-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .withdraw-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .payment-method-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .payment-method-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        /* Share Button */
+        .share-btn {
+            background: linear-gradient(135deg, #00cc66, #009944);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        /* Install App Button */
+        .install-btn {
+            background: linear-gradient(135deg, #ff9900, #ff6600);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            width: 100%;
+            display: none;
+        }
+
+        /* Back Button */
+        .back-btn {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        /* ==================== LOTTERY STYLES ==================== */
+        .lottery-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .lottery-title {
+            font-size: 24px;
+            color: #0066cc;
+            margin-bottom: 15px;
+        }
+
+        .time-tabs {
+            display: flex;
+            background: #34495e;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .time-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .time-tab.active {
+            background: #e74c3c;
+            font-weight: bold;
+        }
+
+        .lottery-tabs {
+            display: flex;
+            background: #2c3e50;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .lottery-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .lottery-tab.active {
+            background: #3498db;
+            font-weight: bold;
+        }
+
+        .numbers-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            min-height: 300px;
+        }
+
+        .single-numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .double-numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .number-btn {
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 15px 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .number-btn:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .number-btn.selected {
+            background: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+
+        .bet-section {
+            padding: 20px;
+            background: white;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .bet-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .bet-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .lottery-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            gap: 10px;
+        }
+
+        .balance-info, .win-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        .lottery-result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .win-message {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .lose-message {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .payout-info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #0066cc;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .time-lottery-section {
+            display: none;
+        }
+
+        .time-lottery-section.active {
+            display: block;
+        }
+
+        /* Lottery History */
+        .lottery-history {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Admin Lottery Styles */
+        .lottery-bets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .lottery-bet-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e1e8ed;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .bet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .bet-phone {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .bet-time {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .bet-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .bet-detail-item {
+            text-align: center;
+            padding: 5px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .bet-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .bet-amount {
+            font-size: 16px;
+            color: #ff9900;
+            font-weight: bold;
+        }
+
+        .bet-type {
+            font-size: 14px;
+            color: #0066cc;
+            font-weight: bold;
+        }
+
+        .bet-time-slot {
+            font-size: 14px;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        /* Result Input Styles */
+        .result-input-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 3px solid #e74c3c;
+        }
+
+        .result-input-title {
+            font-size: 20px;
+            color: #e74c3c;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .result-input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .result-input-group {
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .result-input {
+            width: 100px;
+            padding: 12px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .submit-result-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .current-result-display {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid #ff9900;
+        }
+
+        .current-result-title {
+            font-size: 18px;
+            color: #ff9900;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .current-result-numbers {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .result-item {
+            text-align: center;
+        }
+
+        .result-time {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .result-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Settings Button -->
+    <div class="settings-btn" onclick="showSettings()"> Settings</div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-content">
+            <div class="settings-title"> Settings</div>
+            
+            <div class="settings-section">
+                <h3> အသံထိန်းချုပ်မှု</h3>
+                <div class="settings-option">
+                    <div class="volume-control">
+                        <span>အသံအကျယ်:</span>
+                        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50" oninput="updateVolume()">
+                        <span class="volume-value" id="volumeValue">50%</span>
+                    </div>
+                </div>
+                <div class="settings-option">
+                    <button class="sound-btn" onclick="toggleSound()" style="width: 100%; background: linear-gradient(135deg, #00cc66, #009944); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                        <span id="soundToggleText"> အသံဖွင့်</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3> App Features</h3>
+                <div class="settings-option">
+                    <button class="share-btn" onclick="shareGame()">
+                         ဂိမ်းကိုမျှဝေမည်
+                    </button>
+                </div>
+                <div class="settings-option">
+                    <button class="install-btn" id="installButton" onclick="installApp()">
+                         App အဖြစ်သွင်းမည်
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3> အကောင့်စီမံခန့်ခွဲမှု</h3>
+                <div class="settings-option">
+                    <button class="admin-btn" onclick="showAdminPanelFromSettings()" style="width: 100%; background: linear-gradient(135deg, #ff4444, #cc0000); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                         Admin Panel
+                    </button>
+                </div>
+                <div class="settings-option">
+                    <button class="logout-btn" onclick="logoutFromSettings()" style="width: 100%; background: #ff4444; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                         အကောင့်မှထွက်မည်
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3> အကြောင်းအရာ</h3>
+                <div class="settings-option">
+                    <div style="text-align: center; color: #666; font-size: 14px;">
+                        <p>Game Center v2.0</p>
+                        <p>Developed with </p>
+                        <p style="margin-top: 10px; font-size: 12px; color: #999;"> Encrypted & Secure</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="close-settings" onclick="closeSettings()">ပိတ်မည်</button>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="admin-modal">
+        <div class="admin-content">
+            <div class="admin-title"> Admin Panel</div>
+            
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="showAdminTab('users')"> User Management</button>
+                <button class="admin-tab" onclick="showAdminTab('transactions')"> Transactions</button>
+                <button class="admin-tab" onclick="showAdminTab('stats')"> Statistics</button>
+                <button class="admin-tab" onclick="showAdminTab('deposits')"> Pending Deposits</button>
+                <button class="admin-tab" onclick="showAdminTab('lottery')"> Lottery Bets</button>
+                <button class="admin-tab" onclick="showAdminTab('results')"> Set Results</button>
+                <button class="admin-tab" onclick="showAdminTab('activities')"> User Activities</button>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="usersTab" class="admin-tab-content">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div>Total Users</div>
+                        <div class="stat-value" id="totalUsers">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Total Balance</div>
+                        <div class="stat-value" id="totalBalance">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Active Today</div>
+                        <div class="stat-value" id="activeUsers">0</div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3> User Management</h3>
+                    <input type="text" class="search-box" id="userSearch" placeholder="Search by phone number..." onkeyup="searchUsers()">
+                    
+                    <div class="user-list" id="userList">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3> Balance Management</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="tel" class="search-box" id="targetPhone" placeholder="Phone number">
+                        <input type="number" class="admin-input" id="balanceToAdd" placeholder="Amount" value="1000">
+                        <button class="add-balance-btn" onclick="addBalanceToUser()">Add Balance</button>
+                        <button class="deduct-balance-btn" onclick="deductBalanceFromUser()">Deduct Balance</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Tab -->
+            <div id="transactionsTab" class="admin-tab-content" style="display: none;">
+                <div class="admin-section">
+                    <h3> All Transactions</h3>
+                    <div class="transaction-list" id="transactionList">
+                        <!-- Transactions will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div id="statsTab" class="admin-tab-content" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div>Total Deposits</div>
+                        <div class="stat-value" id="totalDeposits">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Total Withdrawals</div>
+                        <div class="stat-value" id="totalWithdrawals">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Net Profit</div>
+                        <div class="stat-value" id="netProfit">0</div>
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <h3> Transaction History</h3>
+                    <div style="margin-bottom: 15px;">
+                        <input type="date" id="transactionDate" onchange="filterTransactionsByDate()">
+                        <button onclick="clearDateFilter()" style="margin-left: 10px; padding: 5px 10px; background: #666; color: white; border: none; border-radius: 5px;">Clear Filter</button>
+                    </div>
+                    <div class="transaction-list" id="filteredTransactionList">
+                        <!-- Filtered transactions will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Deposits Tab -->
+            <div id="depositsTab" class="admin-tab-content" style="display: none;">
+                <div class="admin-section">
+                    <h3> Pending Deposit Requests</h3>
+                    <div class="transaction-list" id="pendingDepositsList">
+                        <!-- Pending deposits will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lottery Bets Tab -->
+            <div id="lotteryTab" class="admin-tab-content" style="display: none;">
+                <div class="admin-section">
+                    <h3> All Lottery Bets</h3>
+                    <div class="lottery-bets-grid" id="lotteryBetsList">
+                        <!-- Lottery bets will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Set Results Tab -->
+            <div id="resultsTab" class="admin-tab-content" style="display: none;">
+                <div class="result-input-section">
+                    <div class="result-input-title">ထွက်ဂဏန်းများ ထည့်သွင်းရန်</div>
+                    
+                    <div class="result-input-grid">
+                        <div class="result-input-group">
+                            <div class="result-label">၁၂နာရီ၁မိနစ် ထွက်ဂဏန်း</div>
+                            <input type="number" class="result-input" id="morningResult" min="0" max="99" placeholder="00">
+                            <button class="submit-result-btn" onclick="setLotteryResult('morning')">အတည်ပြုမည်</button>
+                        </div>
+                        
+                        <div class="result-input-group">
+                            <div class="result-label">၄နာရီခွဲ ထွက်ဂဏန်း</div>
+                            <input type="number" class="result-input" id="eveningResult" min="0" max="99" placeholder="00">
+                            <button class="submit-result-btn" onclick="setLotteryResult('evening')">အတည်ပြုမည်</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="current-result-display">
+                    <div class="current-result-title">လက်ရှိထွက်ဂဏန်းများ</div>
+                    <div class="current-result-numbers">
+                        <div class="result-item">
+                            <div class="result-time">၁၂နာရီ၁မိနစ်</div>
+                            <div class="result-number" id="currentMorningResult">မထွက်ရသေး</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-time">၄နာရီခွဲ</div>
+                            <div class="result-number" id="currentEveningResult">မထွက်ရသေး</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>ယနေ့ထွက်ဂဏန်းမှတ်တမ်း</h3>
+                    <div class="transaction-list" id="resultHistoryList">
+                        <!-- Result history will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Activities Tab -->
+            <div id="activitiesTab" class="admin-tab-content" style="display: none;">
+                <div class="admin-section">
+                    <h3> User Activities Log</h3>
+                    <div class="transaction-list" id="userActivitiesList">
+                        <!-- User activities will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="close-admin" onclick="closeAdminPanel()">Close Admin Panel</button>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="login-container">
+            <div class="login-title"> Game Center</div>
+            <input type="text" class="login-input" id="loginPhone" placeholder="ဖုန်းနံပါတ်" value="">
+            <input type="password" class="login-input" id="loginPassword" placeholder="စကားဝှက်" value="">
+            <button class="login-btn" onclick="login()">ဝင်မည်</button>
+            <div class="register-link">
+                အကောင့်မရှိသေးပါက? <a href="javascript:void(0)" onclick="showRegister()">အကောင့်အသစ်ဖွင့်မည်</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="admin-modal" style="display: none;">
+        <div class="admin-content" style="max-width: 400px;">
+            <div class="admin-title"> အကောင့်အသစ်ဖွင့်မည်</div>
+            
+            <div class="admin-section">
+                <input type="text" class="login-input" id="registerPhone" placeholder="ဖုန်းနံပါတ်" value="">
+                <input type="password" class="login-input" id="registerPassword" placeholder="စကားဝှက်" value="">
+                <input type="password" class="login-input" id="confirmPassword" placeholder="စကားဝှက်အတည်ပြုရန်" value="">
+                <button class="login-btn" onclick="register()">အကောင့်ဖွင့်မည်</button>
+                <div class="register-link">
+                    အကောင့်ရှိပြီးသားလား? <a href="javascript:void(0)" onclick="showLogin()">ဝင်မည်</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-bar" style="display: none;">
+        <button class="nav-btn active" onclick="showPage('homePage')"> Home</button>
+        <button class="nav-btn" onclick="showPage('walletPage')"> Wallet</button>
+        <button class="nav-btn" onclick="showPage('lotteryPage')"> Lottery</button>
+        <button class="nav-btn" onclick="logout()"> ထွက်မည်</button>
+    </div>
+
+    <!-- Home Page -->
+    <div id="homePage" class="page active">
+        <div class="home-container">
+            <div class="home-title"> Game Center</div>
+            <div class="balance-display">လက်ကျန်ငွေ: <span id="homeBalance">0</span> ကျပ်</div>
+            
+            <button class="game-btn" onclick="startLottery()">
+                <div class="game-icon">🎫</div>
+                <div>ထီဂဏန်းထိုးကြေး</div>
+            </button>
+            
+            <button class="share-btn" onclick="shareGame()"> ဂိမ်းကိုမျှဝေမည်</button>
+            <button class="install-btn" id="homeInstallButton" onclick="installApp()"> App အဖြစ်သွင်းမည်</button>
+        </div>
+    </div>
+
+    <!-- Wallet Page -->
+    <div id="walletPage" class="page">
+        <div class="wallet-container">
+            <div class="wallet-title"> Wallet</div>
+            <div class="balance-section">
+                <div>လက်ကျန်ငွေ</div>
+                <div class="balance-amount" id="walletBalance">0 ကျပ်</div>
+            </div>
+
+            <div class="section-title">ငွေသွင်းရန်</div>
+            
+            <!-- KPay Section -->
+            <div class="payment-info">
+                <div class="payment-detail">
+                    <span>KPay အမည်:</span>
+                    <span>SaHlaMin</span>
+                </div>
+                <div class="payment-detail">
+                    <span>ဖုန်းနံပါတ်:</span>
+                    <span>09694265782</span>
+                </div>
+                <div class="payment-detail">
+                    <span>ငွေပမာဏ:</span>
+                    <div class="ref-input-container">
+                        <input type="number" class="amount-input" id="kpayAmount" placeholder="10000" value="10000" min="1000">
+                        <span>ကျပ်</span>
+                    </div>
+                </div>
+                <div class="payment-detail">
+                    <span>ငွေလွဲပြေစာ နောက်ဆုံး ၆လုံး:</span>
+                    <div class="ref-input-container">
+                        <input type="text" class="ref-input" id="kpayRef" placeholder="123456" maxlength="6">
+                        <button class="confirm-btn" onclick="confirmDeposit('kpay')">အတည်ပြုပါ</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wave Pay Section -->
+            <div class="payment-info">
+                <div class="payment-detail">
+                    <span>Wave Pay အမည်:</span>
+                    <span>Hnin Wai Yee</span>
+                </div>
+                <div class="payment-detail">
+                    <span>ဖုန်းနံပါတ်:</span>
+                    <span>09262017868</span>
+                </div>
+                <div class="payment-detail">
+                    <span>ငွေပမာဏ:</span>
+                    <div class="ref-input-container">
+                        <input type="number" class="amount-input" id="waveAmount" placeholder="10000" value="10000" min="1000">
+                        <span>ကျပ်</span>
+                    </div>
+                </div>
+                <div class="payment-detail">
+                    <span>ငွေလွဲပြေစာ နောက်ဆုံး ၆လုံး:</span>
+                    <div class="ref-input-container">
+                        <input type="text" class="ref-input" id="waveRef" placeholder="123456" maxlength="6">
+                        <button class="confirm-btn" onclick="confirmDeposit('wave')">အတည်ပြုပါ</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">ငွေထုတ်ရန်</div>
+            <div class="withdraw-form">
+                <div class="input-group">
+                    <input type="text" id="receiverName" placeholder="လက်ခံမည့်သူအမည်">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="receiverPhone" placeholder="ဖုန်းနံပါတ်">
+                </div>
+                <div class="input-group">
+                    <input type="number" id="withdrawAmount" placeholder="ငွေပမာဏ" min="2000">
+                </div>
+                
+                <div class="payment-methods">
+                    <button class="payment-method-btn active" onclick="selectWithdrawMethod('kpay')">KPay</button>
+                    <button class="payment-method-btn" onclick="selectWithdrawMethod('wave')">Wave Pay</button>
+                </div>
+                
+                <button class="withdraw-btn" onclick="processWithdraw()">ငွေထုတ်မည်</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lottery Page -->
+    <div id="lotteryPage" class="page">
+        <button class="back-btn" onclick="showHomePage()"> Home</button>
+        <div class="lottery-container">
+            <div class="lottery-title"> ထီဂဏန်းထိုးကြေး</div>
+            
+            <!-- Current Results Display -->
+            <div class="current-result-display">
+                <div class="current-result-title">ယနေ့ထွက်ဂဏန်းများ</div>
+                <div class="current-result-numbers">
+                    <div class="result-item">
+                        <div class="result-time">၁၂နာရီ၁မိနစ်</div>
+                        <div class="result-number" id="displayMorningResult">မထွက်ရသေး</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-time">၄နာရီခွဲ</div>
+                        <div class="result-number" id="displayEveningResult">မထွက်ရသေး</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="time-tabs">
+                <button class="time-tab active" data-time="morning">၁၂နာရီ၁မိနစ်ထွက်ဂဏန်း</button>
+                <button class="time-tab" data-time="evening">၄နာရီခွဲထွက်ဂဏန်း</button>
+            </div>
+            
+            <!-- Morning Content -->
+            <div class="time-lottery-section active" id="morningSection">
+                <div class="lottery-tabs">
+                    <button class="lottery-tab active" data-lottery="single">၁လုံးထီ (၀-၉)</button>
+                    <button class="lottery-tab" data-lottery="double">၂လုံးထီ (၁၀-၉၉)</button>
+                </div>
+                
+                <!-- Morning Single Numbers -->
+                <div class="tab-content active" id="morningSingle">
+                    <div class="numbers-section">
+                        <div class="single-numbers-grid" id="morningSingleNumbers"></div>
+                    </div>
+                </div>
+                
+                <!-- Morning Double Numbers -->
+                <div class="tab-content" id="morningDouble">
+                    <div class="numbers-section">
+                        <div class="double-numbers-grid" id="morningDoubleNumbers"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Evening Content -->
+            <div class="time-lottery-section" id="eveningSection">
+                <div class="lottery-tabs">
+                    <button class="lottery-tab active" data-lottery="single">၁လုံးထီ (၀-၉)</button>
+                    <button class="lottery-tab" data-lottery="double">၂လုံးထီ (၁၀-၉၉)</button>
+                </div>
+                
+                <!-- Evening Single Numbers -->
+                <div class="tab-content active" id="eveningSingle">
+                    <div class="numbers-section">
+                        <div class="single-numbers-grid" id="eveningSingleNumbers"></div>
+                    </div>
+                </div>
+                
+                <!-- Evening Double Numbers -->
+                <div class="tab-content" id="eveningDouble">
+                    <div class="numbers-section">
+                        <div class="double-numbers-grid" id="eveningDoubleNumbers"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bet-section">
+                <input type="number" class="bet-input" id="betAmount" 
+                       placeholder="ထိုးကြေးငွေပမာဏ ထည့်ပါ" min="100" max="100000" value="100">
+                <button class="bet-btn" id="placeBet">ထိုးကြေးထည့်ပါ</button>
+            </div>
+            
+            <div class="payout-info">
+                <div>ဆုကြေး: ၁လုံးထီ - ၉ဆ | ၂လုံးထီ - ၉၀ဆ</div>
+            </div>
+            
+            <div class="lottery-controls">
+                <div class="balance-info">
+                    <div>လက်ကျန်ငွေ</div>
+                    <div id="lotteryBalance">0</div>
+                </div>
+                <div class="win-info">
+                    <div>ရွေးထားသောဂဏန်း</div>
+                    <div id="selectedNumberDisplay">မရွေးရသေးပါ</div>
+                </div>
+            </div>
+            
+            <div class="lottery-result" id="lotteryResult">
+                ဂဏန်းရွေးပြီး ထိုးကြေးထည့်ပါ!
+            </div>
+
+            <div class="lottery-history">
+                <div style="font-weight: bold; margin-bottom: 10px; text-align: center;">မှတ်တမ်း</div>
+                <div id="lotteryHistoryList">
+                    <!-- Lottery history will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== ENHANCED SECURITY SYSTEM ====================
+        const SECURITY_CONFIG = {
+            adminPassword: "Hnin462023",
+            encryptionKey: "GameCenterSecure2024!@#",
+            version: "2.1"
+        };
+
+        // ==================== LOTTERY SYSTEM ====================
+        let currentTimeTab = 'morning';
+        let currentLotteryTab = 'single';
+        let selectedNumber = null;
+        let lotteryBetAmount = 100;
+        let lotteryHistory = [];
+        let lotteryResults = {
+            morning: null,
+            evening: null
+        };
+        let resultHistory = [];
+
+        // Myanmar digits
+        const myanmarDigits = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'];
+
+        function startLottery() {
+            playClickSound();
+            showPage('lotteryPage');
+            initializeLottery();
+        }
+
+        function initializeLottery() {
+            generateLotteryNumbers();
+            loadLotteryHistory();
+            loadLotteryResults();
+            updateLotteryDisplay();
+            updateResultDisplays();
+        }
+
+        function generateLotteryNumbers() {
+            // Morning Single Numbers (0-9)
+            const morningSingle = document.getElementById('morningSingleNumbers');
+            morningSingle.innerHTML = '';
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'number-btn';
+                btn.textContent = myanmarDigits[i];
+                btn.onclick = () => selectLotteryNumber(i, 'morning', 'single');
+                morningSingle.appendChild(btn);
+            }
+            
+            // Morning Double Numbers (10-99)
+            const morningDouble = document.getElementById('morningDoubleNumbers');
+            morningDouble.innerHTML = '';
+            for (let i = 10; i <= 99; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'number-btn';
+                btn.textContent = formatMyanmarNumber(i);
+                btn.onclick = () => selectLotteryNumber(i, 'morning', 'double');
+                morningDouble.appendChild(btn);
+            }
+            
+            // Evening Single Numbers (0-9)
+            const eveningSingle = document.getElementById('eveningSingleNumbers');
+            eveningSingle.innerHTML = '';
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'number-btn';
+                btn.textContent = myanmarDigits[i];
+                btn.onclick = () => selectLotteryNumber(i, 'evening', 'single');
+                eveningSingle.appendChild(btn);
+            }
+            
+            // Evening Double Numbers (10-99)
+            const eveningDouble = document.getElementById('eveningDoubleNumbers');
+            eveningDouble.innerHTML = '';
+            for (let i = 10; i <= 99; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'number-btn';
+                btn.textContent = formatMyanmarNumber(i);
+                btn.onclick = () => selectLotteryNumber(i, 'evening', 'double');
+                eveningDouble.appendChild(btn);
+            }
+        }
+
+        function formatMyanmarNumber(num) {
+            if (num < 10) return myanmarDigits[num];
+            
+            const tens = Math.floor(num / 10);
+            const ones = num % 10;
+            return myanmarDigits[tens] + myanmarDigits[ones];
+        }
+
+        function selectLotteryNumber(number, timeTab, lotteryTab) {
+            playClickSound();
+            selectedNumber = number;
+            currentTimeTab = timeTab;
+            currentLotteryTab = lotteryTab;
+            
+            // Remove selected class from all buttons
+            document.querySelectorAll('.number-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked button
+            event.target.classList.add('selected');
+            
+            // Update selected number display
+            document.getElementById('selectedNumberDisplay').textContent = formatMyanmarNumber(number);
+            
+            updateLotteryDisplay();
+        }
+
+        function placeLotteryBet() {
+            if (!currentUser) {
+                alert("ကျေးဇူးပြု၍ အကောင့်ဝင်ထားပါ!");
+                return;
+            }
+            
+            if (!selectedNumber) {
+                alert("ကျေးဇူးပြု၍ ဂဏန်းတစ်လုံးရွေးပါ");
+                return;
+            }
+            
+            const betAmount = parseInt(document.getElementById('betAmount').value);
+            
+            if (!betAmount || betAmount < 100) {
+                alert("အနည်းဆုံး ထိုးကြေး ၁၀၀ ကျပ်ထည့်ပါ");
+                return;
+            }
+            
+            if (betAmount > currentBalance) {
+                alert("လက်ကျန်ငွေ မလုံလောက်ပါ");
+                return;
+            }
+            
+            // Deduct bet amount from balance
+            currentBalance -= betAmount;
+            
+            // Record lottery bet
+            const lotteryBet = {
+                phone: currentUser.phone,
+                number: selectedNumber,
+                betAmount: betAmount,
+                timeSlot: currentTimeTab,
+                lotteryType: currentLotteryTab,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            };
+            
+            // Save to lottery bets
+            const lotteryBets = secureGetItem('lotteryBets') || [];
+            lotteryBets.push(lotteryBet);
+            secureSetItem('lotteryBets', lotteryBets);
+            
+            // Record transaction
+            recordTransaction(currentUser.phone, 'withdraw', betAmount, 
+                `Lottery bet - ${formatMyanmarNumber(selectedNumber)} (${currentTimeTab === 'morning' ? '12:01' : '4:30'} - ${currentLotteryTab === 'single' ? '1-digit' : '2-digit'})`);
+            
+            // Log activity
+            logUserActivity(currentUser.phone, 'lottery_bet', {
+                number: selectedNumber,
+                betAmount: betAmount,
+                timeSlot: currentTimeTab,
+                lotteryType: currentLotteryTab
+            });
+            
+            // Add to history
+            const timeText = currentTimeTab === 'morning' ? '၁၂နာရီ၁မိနစ်' : '၄နာရီခွဲ';
+            const typeText = currentLotteryTab === 'single' ? '၁လုံးထီ' : '၂လုံးထီ';
+            
+            lotteryHistory.unshift({
+                number: selectedNumber,
+                betAmount: betAmount,
+                timeSlot: timeText,
+                lotteryType: typeText,
+                timestamp: new Date().toLocaleString()
+            });
+            
+            if (lotteryHistory.length > 10) {
+                lotteryHistory = lotteryHistory.slice(0, 10);
+            }
+            
+            saveLotteryHistory();
+            updateAllDisplays();
+            updateLotteryHistory();
+            
+            // Reset selection
+            document.querySelectorAll('.number-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            selectedNumber = null;
+            document.getElementById('selectedNumberDisplay').textContent = 'မရွေးရသေးပါ';
+            
+            document.getElementById('lotteryResult').textContent = 
+                `ထိုးကြေးအောင်မြင်ပါသည်! ဂဏန်း: ${formatMyanmarNumber(lotteryBet.number)} | ကြေး: ${betAmount.toLocaleString()} ကျပ်`;
+            document.getElementById('lotteryResult').className = 'lottery-result win-message';
+            
+            playDiceSound();
+        }
+
+        function updateLotteryDisplay() {
+            document.getElementById('lotteryBalance').textContent = currentBalance.toLocaleString();
+        }
+
+        function updateLotteryHistory() {
+            const historyList = document.getElementById('lotteryHistoryList');
+            historyList.innerHTML = '';
+            
+            lotteryHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <div>
+                        <span style="font-weight: bold;">${formatMyanmarNumber(item.number)}</span>
+                        <span style="color: #666; font-size: 12px;">(${item.lotteryType})</span>
+                    </div>
+                    <div>
+                        <span style="color: #ff9900; font-weight: bold;">${item.betAmount.toLocaleString()}</span>
+                        <span style="color: #666; font-size: 12px;">${item.timeSlot}</span>
+                    </div>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        function loadLotteryHistory() {
+            const savedHistory = secureGetItem('lotteryHistory');
+            if (savedHistory) {
+                lotteryHistory = savedHistory;
+            }
+            updateLotteryHistory();
+        }
+
+        function saveLotteryHistory() {
+            secureSetItem('lotteryHistory', lotteryHistory);
+        }
+
+        // Load lottery bets for admin
+        function loadLotteryBets() {
+            const lotteryBets = secureGetItem('lotteryBets') || [];
+            const lotteryBetsList = document.getElementById('lotteryBetsList');
+            
+            lotteryBetsList.innerHTML = '';
+            
+            if (lotteryBets.length === 0) {
+                lotteryBetsList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No lottery bets yet</div>';
+                return;
+            }
+            
+            // Sort by timestamp (newest first)
+            lotteryBets.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            lotteryBets.forEach(bet => {
+                const betItem = document.createElement('div');
+                betItem.className = 'lottery-bet-item';
+                
+                const timeText = bet.timeSlot === 'morning' ? '၁၂နာရီ၁မိနစ်' : '၄နာရီခွဲ';
+                const typeText = bet.lotteryType === 'single' ? '၁လုံးထီ' : '၂လုံးထီ';
+                
+                betItem.innerHTML = `
+                    <div class="bet-header">
+                        <div class="bet-phone">${bet.phone}</div>
+                        <div class="bet-time">${new Date(bet.timestamp).toLocaleString()}</div>
+                    </div>
+                    <div class="bet-details">
+                        <div class="bet-detail-item">
+                            <div>ဂဏန်း</div>
+                            <div class="bet-number">${formatMyanmarNumber(bet.number)}</div>
+                        </div>
+                        <div class="bet-detail-item">
+                            <div>ထိုးကြေး</div>
+                            <div class="bet-amount">${bet.betAmount.toLocaleString()} ကျပ်</div>
+                        </div>
+                        <div class="bet-detail-item">
+                            <div>အချိန်</div>
+                            <div class="bet-time-slot">${timeText}</div>
+                        </div>
+                        <div class="bet-detail-item">
+                            <div>ထီအမျိုးအစား</div>
+                            <div class="bet-type">${typeText}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                        <div style="font-size: 12px; color: #666;">
+                            Status: <span style="color: ${bet.status === 'pending' ? '#ff9900' : bet.status === 'won' ? '#00cc66' : '#ff4444'}">${bet.status}</span>
+                        </div>
+                    </div>
+                `;
+                lotteryBetsList.appendChild(betItem);
+            });
+        }
+
+        // ==================== LOTTERY RESULT SYSTEM ====================
+        function setLotteryResult(timeSlot) {
+            const resultInput = document.getElementById(timeSlot + 'Result');
+            const resultValue = parseInt(resultInput.value);
+            
+            if (isNaN(resultValue) || resultValue < 0 || resultValue > 99) {
+                alert("ကျေးဇူးပြု၍ ၀ မှ ၉၉ အတွင်း ဂဏန်းထည့်ပါ");
+                return;
+            }
+            
+            lotteryResults[timeSlot] = resultValue;
+            
+            // Save results
+            secureSetItem('lotteryResults', lotteryResults);
+            
+            // Add to result history
+            const timeText = timeSlot === 'morning' ? '၁၂နာရီ၁မိနစ်' : '၄နာရီခွဲ';
+            resultHistory.unshift({
+                timeSlot: timeSlot,
+                number: resultValue,
+                timestamp: new Date().toISOString(),
+                displayTime: new Date().toLocaleString()
+            });
+            
+            if (resultHistory.length > 50) {
+                resultHistory = resultHistory.slice(0, 50);
+            }
+            
+            secureSetItem('resultHistory', resultHistory);
+            
+            // Clear input
+            resultInput.value = '';
+            
+            // Update displays
+            updateResultDisplays();
+            updateResultHistory();
+            
+            // Process winning bets
+            processWinningBets(timeSlot, resultValue);
+            
+            alert(`${timeText} ထွက်ဂဏန်း ${formatMyanmarNumber(resultValue)} အတည်ပြုပြီးပါပြီ!`);
+        }
+
+        function loadLotteryResults() {
+            const savedResults = secureGetItem('lotteryResults');
+            if (savedResults) {
+                lotteryResults = savedResults;
+            }
+            
+            const savedHistory = secureGetItem('resultHistory');
+            if (savedHistory) {
+                resultHistory = savedHistory;
+            }
+        }
+
+        function updateResultDisplays() {
+            // Update admin panel display
+            document.getElementById('currentMorningResult').textContent = 
+                lotteryResults.morning !== null ? formatMyanmarNumber(lotteryResults.morning) : 'မထွက်ရသေး';
+            document.getElementById('currentEveningResult').textContent = 
+                lotteryResults.evening !== null ? formatMyanmarNumber(lotteryResults.evening) : 'မထွက်ရသေး';
+            
+            // Update lottery page display
+            document.getElementById('displayMorningResult').textContent = 
+                lotteryResults.morning !== null ? formatMyanmarNumber(lotteryResults.morning) : 'မထွက်ရသေး';
+            document.getElementById('displayEveningResult').textContent = 
+                lotteryResults.evening !== null ? formatMyanmarNumber(lotteryResults.evening) : 'မထွက်ရသေး';
+        }
+
+        function updateResultHistory() {
+            const resultHistoryList = document.getElementById('resultHistoryList');
+            resultHistoryList.innerHTML = '';
+            
+            if (resultHistory.length === 0) {
+                resultHistoryList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No result history</div>';
+                return;
+            }
+            
+            resultHistory.slice(0, 20).forEach(result => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'transaction-item';
+                
+                const timeText = result.timeSlot === 'morning' ? '၁၂နာရီ၁မိနစ်' : '၄နာရီခွဲ';
+                
+                historyItem.innerHTML = `
+                    <div>
+                        <div><strong>${timeText}</strong></div>
+                        <div style="font-size: 12px; color: #666;">${result.displayTime}</div>
+                    </div>
+                    <div class="transaction-type deposit" style="font-size: 18px; font-weight: bold;">
+                        ${formatMyanmarNumber(result.number)}
+                    </div>
+                `;
+                resultHistoryList.appendChild(historyItem);
+            });
+        }
+
+        function processWinningBets(timeSlot, winningNumber) {
+            const lotteryBets = secureGetItem('lotteryBets') || [];
+            const users = secureGetItem('gameUsers') || [];
+            let updated = false;
+            
+            lotteryBets.forEach(bet => {
+                if (bet.timeSlot === timeSlot && bet.status === 'pending') {
+                    const isWin = bet.number === winningNumber;
+                    
+                    if (isWin) {
+                        // Calculate win amount based on lottery type
+                        const winMultiplier = bet.lotteryType === 'single' ? 9 : 90;
+                        const winAmount = bet.betAmount * winMultiplier;
+                        
+                        // Update user balance
+                        const userIndex = users.findIndex(u => u.phone === bet.phone);
+                        if (userIndex !== -1) {
+                            users[userIndex].balance = (users[userIndex].balance || 0) + winAmount;
+                            
+                            // Record winning transaction
+                            recordTransaction(bet.phone, 'deposit', winAmount, 
+                                `Lottery win - ${formatMyanmarNumber(bet.number)} (${timeSlot === 'morning' ? '12:01' : '4:30'})`);
+                            
+                            // Log activity
+                            logUserActivity(bet.phone, 'lottery_win', {
+                                number: bet.number,
+                                betAmount: bet.betAmount,
+                                winAmount: winAmount,
+                                timeSlot: timeSlot
+                            });
+                        }
+                        
+                        bet.status = 'won';
+                        bet.winAmount = winAmount;
+                    } else {
+                        bet.status = 'lost';
+                    }
+                    
+                    bet.resultProcessed = new Date().toISOString();
+                    updated = true;
+                }
+            });
+            
+            if (updated) {
+                secureSetItem('lotteryBets', lotteryBets);
+                secureSetItem('gameUsers', users);
+                
+                // Update current user balance if they won
+                if (currentUser) {
+                    const currentUserIndex = users.findIndex(u => u.phone === currentUser.phone);
+                    if (currentUserIndex !== -1) {
+                        currentBalance = users[currentUserIndex].balance;
+                        updateAllDisplays();
+                    }
+                }
+            }
+        }
+
+        // ==================== AUTO LOGIN SYSTEM ====================
+        function checkAutoLogin() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                try {
+                    const userData = JSON.parse(savedUser);
+                    let users = secureGetItem('gameUsers') || [];
+                    let user = users.find(u => u.phone === userData.phone);
+                    
+                    if (user && user.password === userData.password) {
+                        currentUser = user;
+                        currentBalance = user.balance || 1000;
+                        
+                        document.getElementById('loginPage').style.display = 'none';
+                        document.querySelector('.nav-bar').style.display = 'flex';
+                        showPage('homePage');
+                        initializeGame();
+                        
+                        console.log("Auto login successful for:", userData.phone);
+                        return true;
+                    }
+                } catch (error) {
+                    console.log("Auto login error:", error);
+                }
+            }
+            return false;
+        }
+
+        // ==================== IMPROVED SHARING SYSTEM ====================
+        function shareGame() {
+            const gameUrl = window.location.href;
+            const shareText = " ဒီဂိမ်းကိုကစားကြည့်ပါ! စိတ်ဝင်စားစရာကောင်းတဲ့ ထီဂဏန်းထိုးကြေး Game ပါ! ";
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Game Center',
+                    text: shareText,
+                    url: gameUrl
+                })
+                .then(() => console.log('Share successful'))
+                .catch((error) => {
+                    fallbackShare(gameUrl, shareText);
+                });
+            } else {
+                fallbackShare(gameUrl, shareText);
+            }
+        }
+
+        function fallbackShare(url, text) {
+            const tempInput = document.createElement('input');
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999);
+            
+            try {
+                const successful = document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                
+                if (successful) {
+                    alert(' ဂိမ်းလိပ်စာကို clipboard ထဲကူးထည့်ပေးလိုက်ပါပြီ!\n\n' + url + '\n\nဒီလိပ်စာကို မိတ်ဆွေတွေကို ပို့ပေးပါ!');
+                } else {
+                    alert(' ဂိမ်းလိပ်စာ: ' + url + '\n\nဒီလိပ်စာကို copy ကူးပြီး မိတ်ဆွေတွေကို ပို့ပေးပါ!');
+                }
+            } catch (err) {
+                document.body.removeChild(tempInput);
+                alert(' ဂိမ်းလိပ်စာ: ' + url + '\n\nဒီလိပ်စာကို copy ကူးပြီး မိတ်ဆွေတွေကို ပို့ပေးပါ!');
+            }
+        }
+
+        // ==================== PWA INSTALLATION ====================
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+        const homeInstallButton = document.getElementById('homeInstallButton');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.style.display = 'block';
+            homeInstallButton.style.display = 'block';
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    installButton.style.display = 'none';
+                    homeInstallButton.style.display = 'none';
+                });
+            }
+        }
+
+        // ==================== SETTINGS SYSTEM ====================
+        let soundEnabled = true;
+        let currentVolume = 50;
+
+        function showSettings() {
+            playClickSound();
+            document.getElementById('settingsModal').style.display = 'flex';
+            updateSettingsDisplay();
+        }
+
+        function closeSettings() {
+            playClickSound();
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function showAdminPanelFromSettings() {
+            closeSettings();
+            showAdminPanel();
+        }
+
+        function logoutFromSettings() {
+            closeSettings();
+            logout();
+        }
+
+        function updateSettingsDisplay() {
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeValue = document.getElementById('volumeValue');
+            const soundToggleText = document.getElementById('soundToggleText');
+            
+            volumeSlider.value = currentVolume;
+            volumeValue.textContent = currentVolume + '%';
+            soundToggleText.textContent = soundEnabled ? ' အသံဖွင့်' : ' အသံပိတ်';
+        }
+
+        function updateVolume() {
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeValue = document.getElementById('volumeValue');
+            
+            currentVolume = parseInt(volumeSlider.value);
+            volumeValue.textContent = currentVolume + '%';
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            updateSettingsDisplay();
+            playClickSound();
+        }
+
+        // ==================== SOUND SYSTEM ====================
+        let audioContext = null;
+
+        function initializeSounds() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log("Audio system initialized");
+            } catch (error) {
+                console.log("Web Audio API not supported");
+            }
+        }
+
+        function playClickSound() {
+            if (!soundEnabled) return;
+            
+            try {
+                if (audioContext) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'square';
+                    gainNode.gain.value = (currentVolume / 100) * 0.3;
+                    
+                    oscillator.start();
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                }
+            } catch (error) {
+                console.log("Click sound");
+            }
+        }
+
+        function playDiceSound() {
+            if (!soundEnabled) return;
+            
+            try {
+                if (audioContext) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 400;
+                    oscillator.type = 'triangle';
+                    gainNode.gain.value = (currentVolume / 100) * 0.2;
+                    
+                    oscillator.start();
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                }
+            } catch (error) {
+                console.log("Dice sound");
+            }
+        }
+
+        // ==================== USER ACTIVITY LOGGING ====================
+        function logUserActivity(phone, activity, details) {
+            const activities = secureGetItem('userActivities') || [];
+            activities.push({
+                phone: phone,
+                activity: activity,
+                details: details,
+                timestamp: new Date().toISOString()
+            });
+            secureSetItem('userActivities', activities);
+        }
+
+        function loadUserActivities() {
+            const activities = secureGetItem('userActivities') || [];
+            const activitiesList = document.getElementById('userActivitiesList');
+            
+            activitiesList.innerHTML = '';
+            
+            if (activities.length === 0) {
+                activitiesList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No activities recorded</div>';
+                return;
+            }
+            
+            activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            activities.slice(0, 50).forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'transaction-item';
+                
+                let activityText = '';
+                switch(activity.activity) {
+                    case 'login':
+                        activityText = 'လော့အင်ဝင်ခြင်း';
+                        break;
+                    case 'deposit':
+                        activityText = `ငွေသွင်းခြင်း - ${activity.details.amount} ကျပ်`;
+                        break;
+                    case 'withdraw':
+                        activityText = `ငွေထုတ်ခြင်း - ${activity.details.amount} ကျပ်`;
+                        break;
+                    case 'lottery_bet':
+                        activityText = `ထီဂဏန်းထိုးခြင်း - ${activity.details.number} (${activity.details.betAmount} ကျပ်)`;
+                        break;
+                    case 'lottery_win':
+                        activityText = `ထီဂဏန်�းနိုင်ငွေ - ${activity.details.winAmount} ကျပ်`;
+                        break;
+                    default:
+                        activityText = activity.activity;
+                }
+                
+                activityItem.innerHTML = `
+                    <div>
+                        <div><strong>${activity.phone}</strong></div>
+                        <div style="font-size: 12px; color: #666;">${new Date(activity.timestamp).toLocaleString()}</div>
+                        <div>${activityText}</div>
+                    </div>
+                    <div class="transaction-type ${activity.activity.includes('win') ? 'deposit' : activity.activity.includes('bet') || activity.activity.includes('spin') ? 'withdraw' : 'pending'}">
+                        ${new Date(activity.timestamp).toLocaleDateString()}
+                    </div>
+                `;
+                activitiesList.appendChild(activityItem);
+            });
+        }
+
+        // ==================== USER AUTHENTICATION SYSTEM ====================
+        let currentUser = null;
+        let currentBalance = 0;
+        let currentAdminTab = 'users';
+        let currentWithdrawMethod = 'kpay';
+        let currentPage = 'homePage';
+
+        function showRegister() {
+            document.getElementById('registerModal').style.display = 'flex';
+            playClickSound();
+        }
+
+        function showLogin() {
+            document.getElementById('registerModal').style.display = 'none';
+            playClickSound();
+        }
+
+        function register() {
+            playClickSound();
+            const phone = document.getElementById('registerPhone').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!phone) {
+                alert('ကျေးဇူးပြု၍ ဖုန်းနံပါတ်ထည့်ပါ');
+                return;
+            }
+
+            if (!password) {
+                alert('ကျေးဇူးပြု၍ စကားဝှက်ထည့်ပါ');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert('စကားဝှက်နှစ်ခုတူညီရပါမည်');
+                return;
+            }
+
+            if (password.length < 4) {
+                alert('စကားဝှက်သည် အနည်းဆုံး ၄လုံးရှိရပါမည်');
+                return;
+            }
+
+            let users = secureGetItem('gameUsers') || [];
+            
+            if (users.find(u => u.phone === phone)) {
+                alert('ဤဖုန်းနံပါတ်ဖြင့် အကောင့်ရှိပြီးသားဖြစ်ပါသည်');
+                return;
+            }
+
+            const newUser = {
+                phone: phone,
+                password: password,
+                balance: 1000,
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            secureSetItem('gameUsers', users);
+
+            alert('အကောင့်ဖွင့်ပြီးကြောင်း အောင်မြင်ပါသည်! ကျေးဇူးပြု၍ ဝင်ရောက်ပါ။');
+            showLogin();
+            
+            document.getElementById('registerPhone').value = '';
+            document.getElementById('registerPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        function login() {
+            playClickSound();
+            const phone = document.getElementById('loginPhone').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!phone) {
+                alert('ကျေးဇူးပြု၍ ဖုန်းနံပါတ်ထည့်ပါ');
+                return;
+            }
+            
+            if (!password) {
+                alert('ကျေးဇူးပြု၍ စကားဝှက်ထည့်ပါ');
+                return;
+            }
+            
+            let users = secureGetItem('gameUsers') || [];
+            let user = users.find(u => u.phone === phone);
+            
+            if (!user) {
+                alert('ဤဖုန်းနံပါတ်ဖြင့် အကောင့်မရှိပါ။ ကျေးဇူးပြု၍ အကောင့်အသစ်ဖွင့်ပါ။');
+                return;
+            }
+
+            if (user.password !== password) {
+                alert('စကားဝှက်မှားနေပါသည်');
+                return;
+            }
+            
+            user.lastLogin = new Date().toISOString();
+            secureSetItem('gameUsers', users);
+            
+            currentUser = user;
+            currentBalance = user.balance || 1000;
+            
+            // Auto login အတွက် user data ကို save လုပ်မယ်
+            localStorage.setItem('currentUser', JSON.stringify({
+                phone: phone,
+                password: password,
+                lastLogin: new Date().toISOString()
+            }));
+            
+            document.getElementById('loginPage').style.display = 'none';
+            document.querySelector('.nav-bar').style.display = 'flex';
+            
+            showPage('homePage');
+            initializeGame();
+            
+            recordTransaction(phone, 'info', 0, 'User logged in');
+            logUserActivity(phone, 'login', {});
+            
+            document.getElementById('loginPhone').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        function logout() {
+            playClickSound();
+            if (confirm('အကောင့်မှ ထွက်မည်မှာသေချာပါသလား?')) {
+                // Auto login data ကို ဖျက်မယ်
+                localStorage.removeItem('currentUser');
+                
+                currentUser = null;
+                currentBalance = 0;
+                
+                document.querySelector('.nav-bar').style.display = 'none';
+                document.getElementById('loginPage').style.display = 'flex';
+                
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+            }
+        }
+
+        // ==================== PAGE NAVIGATION ====================
+        function showPage(pageId) {
+            playClickSound();
+            currentPage = pageId;
+            
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(pageId).classList.add('active');
+            
+            const navBtn = document.querySelector(`[onclick="showPage('${pageId}')"]`);
+            if (navBtn) {
+                navBtn.classList.add('active');
+            }
+            
+            if (pageId === 'homePage') {
+                updateHomeDisplay();
+            } else if (pageId === 'walletPage') {
+                updateWalletDisplay();
+            } else if (pageId === 'lotteryPage') {
+                initializeLottery();
+            }
+        }
+
+        function showHomePage() {
+            showPage('homePage');
+        }
+
+        // ==================== GAME SYSTEM ====================
+        function initializeGame() {
+            updateAllDisplays();
+        }
+
+        function updateAllDisplays() {
+            saveUserData();
+            updateHomeDisplay();
+            updateWalletDisplay();
+            if (currentPage === 'lotteryPage') {
+                updateLotteryDisplay();
+            }
+        }
+
+        function updateHomeDisplay() {
+            document.getElementById('homeBalance').textContent = currentBalance.toLocaleString();
+        }
+
+        function updateWalletDisplay() {
+            document.getElementById('walletBalance').textContent = currentBalance.toLocaleString() + ' ကျပ်';
+        }
+
+        function saveUserData() {
+            if (!currentUser) return;
+            
+            let users = secureGetItem('gameUsers') || [];
+            let userIndex = users.findIndex(u => u.phone === currentUser.phone);
+            
+            if (userIndex !== -1) {
+                users[userIndex].balance = currentBalance;
+                users[userIndex].lastLogin = new Date().toISOString();
+                secureSetItem('gameUsers', users);
+            }
+        }
+
+        // ==================== WALLET SYSTEM ====================
+        function selectWithdrawMethod(method) {
+            playClickSound();
+            currentWithdrawMethod = method;
+            
+            document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+        }
+
+        function processWithdraw() {
+            playClickSound();
+            const name = document.getElementById('receiverName').value;
+            const phone = document.getElementById('receiverPhone').value;
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+            
+            if (!name || !phone || !amount) {
+                alert('ကျေးဇူးပြု၍ အားလုံးဖြည့်ပါ');
+                return;
+            }
+            
+            if (amount < 2000) {
+                alert('အနည်းဆုံး ၂၀၀၀ ကျပ်ထုတ်ယူနိုင်ပါသည်');
+                return;
+            }
+            
+            if (amount > currentBalance) {
+                alert('လက်ကျန်ငွေမလုံလောက်ပါ');
+                return;
+            }
+            
+            currentBalance -= amount;
+            updateAllDisplays();
+            
+            recordTransaction(currentUser.phone, 'withdraw', amount, `Withdrawal to ${name} (${phone}) via ${currentWithdrawMethod.toUpperCase()}`);
+            logUserActivity(currentUser.phone, 'withdraw', { amount: amount, method: currentWithdrawMethod });
+            
+            alert(`ငွေထုတ်ယူမှုအောင်မြင်ပါသည်!\n\nအမည်: ${name}\nဖုန်း: ${phone}\nပမာဏ: ${amount.toLocaleString()} ကျပ်\nငွေလွှဲနည်း: ${currentWithdrawMethod.toUpperCase()}`);
+            
+            document.getElementById('receiverName').value = '';
+            document.getElementById('receiverPhone').value = '';
+            document.getElementById('withdrawAmount').value = '';
+        }
+
+        function confirmDeposit(method) {
+            playClickSound();
+            if (!currentUser) {
+                alert("ကျေးဇူးပြု၍ အကောင့်ဝင်ထားပါ!");
+                return;
+            }
+            
+            const refInput = document.getElementById(method + 'Ref');
+            const amountInput = document.getElementById(method + 'Amount');
+            const refNumber = refInput.value.trim();
+            const amount = parseInt(amountInput.value) || 0;
+            
+            if (!refNumber || refNumber.length !== 6) {
+                alert("ကျေးဇူးပြု၍ ပြေစာနံပါတ် ၆လုံးအား အတိအကျထည့်ပါ!");
+                return;
+            }
+            
+            if (!/^\d+$/.test(refNumber)) {
+                alert("ကျေးဇူးပြု၍ နံပါတ်များသာထည့်ပါ!");
+                return;
+            }
+            
+            if (amount < 1000) {
+                alert("ကျေးဇူးပြု၍ အနည်းဆုံး ၁၀၀၀ ကျပ်ထည့်ပါ!");
+                return;
+            }
+            
+            recordPendingDeposit(currentUser.phone, method, refNumber, amount);
+            logUserActivity(currentUser.phone, 'deposit', { amount: amount, method: method });
+            
+            refInput.value = '';
+            
+            alert(`ငွေသွင်းမှုအား လက်ခံရရှိပါပြီ!\n\nကျေးဇူးပြု၍ စောင့်ဆိုင်းပေးပါ။ ငွေသွင်းမှုအား Admin မှ အတည်ပြုပေးပါမည်။\n\nပြေစာနံပါတ်: ${refNumber}\nငွေပမာဏ: ${amount.toLocaleString()} ကျပ်`);
+        }
+
+        // ==================== TRANSACTION SYSTEM ====================
+        function recordTransaction(phone, type, amount, description) {
+            const transactions = secureGetItem('gameTransactions') || [];
+            transactions.push({
+                phone: phone,
+                type: type,
+                amount: amount,
+                description: description,
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleDateString()
+            });
+            secureSetItem('gameTransactions', transactions);
+        }
+
+        function recordPendingDeposit(phone, method, refNumber, amount) {
+            const pendingDeposits = secureGetItem('pendingDeposits') || [];
+            pendingDeposits.push({
+                phone: phone,
+                method: method,
+                refNumber: refNumber,
+                amount: amount,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            });
+            secureSetItem('pendingDeposits', pendingDeposits);
+        }
+
+        // ==================== ADMIN PANEL SYSTEM ====================
+        function showAdminPanel() {
+            playClickSound();
+            const password = prompt("Admin Password ထည့်ပါ:");
+            if (password === SECURITY_CONFIG.adminPassword) {
+                loadAdminData();
+                document.getElementById('adminModal').style.display = 'flex';
+            } else if (password === null) {
+                return;
+            } else {
+                alert("Password မှားနေပါတယ်!");
+            }
+        }
+
+        function closeAdminPanel() {
+            playClickSound();
+            document.getElementById('adminModal').style.display = 'none';
+        }
+
+        function showAdminTab(tabName) {
+            playClickSound();
+            currentAdminTab = tabName;
+            
+            document.querySelectorAll('.admin-tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+            event.target.classList.add('active');
+            
+            if (tabName === 'transactions') {
+                loadAllTransactions();
+            } else if (tabName === 'stats') {
+                loadStatistics();
+            } else if (tabName === 'deposits') {
+                loadPendingDeposits();
+            } else if (tabName === 'lottery') {
+                loadLotteryBets();
+            } else if (tabName === 'results') {
+                loadResultHistory();
+            } else if (tabName === 'activities') {
+                loadUserActivities();
+            }
+        }
+
+        function loadAdminData() {
+            loadUsers();
+            updateAdminStats();
+        }
+
+        function loadUsers() {
+            const users = secureGetItem('gameUsers') || [];
+            const userList = document.getElementById('userList');
+            
+            userList.innerHTML = '';
+            
+            if (users.length === 0) {
+                userList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">User မရှိသေးပါ</div>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const lastLogin = user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never';
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-phone">${user.phone}</div>
+                        <div class="user-balance">${(user.balance || 0).toLocaleString()} ကျပ်</div>
+                        <div class="user-details">Last Login: ${lastLogin} | Created: ${new Date(user.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <div class="admin-controls">
+                        <input type="number" class="admin-input" id="balance-${user.phone}" value="1000" min="1">
+                        <button class="add-balance-btn" onclick="addBalanceToPhone('${user.phone}')">ဖြည့်မည်</button>
+                        <button class="deduct-balance-btn" onclick="deductBalanceFromPhone('${user.phone}')">နှုတ်မည်</button>
+                    </div>
+                `;
+                userList.appendChild(userItem);
+            });
+            
+            updateAdminStats();
+        }
+
+        function updateAdminStats() {
+            const users = secureGetItem('gameUsers') || [];
+            const transactions = secureGetItem('gameTransactions') || [];
+            
+            document.getElementById('totalUsers').textContent = users.length;
+            
+            const totalBalance = users.reduce((sum, user) => sum + (user.balance || 0), 0);
+            document.getElementById('totalBalance').textContent = totalBalance.toLocaleString();
+            
+            const today = new Date().toDateString();
+            const activeUsers = users.filter(user => {
+                const lastLogin = user.lastLogin ? new Date(user.lastLogin).toDateString() : '';
+                return lastLogin === today;
+            }).length;
+            document.getElementById('activeUsers').textContent = activeUsers;
+            
+            const deposits = transactions.filter(t => t.type === 'deposit').reduce((sum, t) => sum + t.amount, 0);
+            const withdrawals = transactions.filter(t => t.type === 'withdraw').reduce((sum, t) => sum + t.amount, 0);
+            const netProfit = withdrawals - deposits;
+            
+            document.getElementById('totalDeposits').textContent = deposits.toLocaleString();
+            document.getElementById('totalWithdrawals').textContent = withdrawals.toLocaleString();
+            document.getElementById('netProfit').textContent = netProfit.toLocaleString();
+        }
+
+        function addBalanceToPhone(phone) {
+            const amount = parseInt(document.getElementById(`balance-${phone}`).value) || 0;
+            if (amount <= 0) {
+                alert("ကျေးဇူးပြု၍ ငွေပမာဏထည့်ပါ");
+                return;
+            }
+            
+            let users = secureGetItem('gameUsers') || [];
+            const userIndex = users.findIndex(u => u.phone === phone);
+            
+            if (userIndex !== -1) {
+                users[userIndex].balance = (users[userIndex].balance || 0) + amount;
+                secureSetItem('gameUsers', users);
+                
+                if (currentUser && currentUser.phone === phone) {
+                    currentBalance = users[userIndex].balance;
+                    updateAllDisplays();
+                }
+                
+                recordTransaction(phone, 'deposit', amount, 'Admin added balance');
+                loadUsers();
+                alert(`Balance added successfully! ${amount.toLocaleString()} added to ${phone}`);
+            }
+        }
+
+        function deductBalanceFromPhone(phone) {
+            const amount = parseInt(document.getElementById(`balance-${phone}`).value) || 0;
+            if (amount <= 0) {
+                alert("ကျေးဇူးပြု၍ ငွေပမာဏထည့်ပါ");
+                return;
+            }
+            
+            let users = secureGetItem('gameUsers') || [];
+            const userIndex = users.findIndex(u => u.phone === phone);
+            
+            if (userIndex !== -1) {
+                if ((users[userIndex].balance || 0) < amount) {
+                    alert("User doesn't have enough balance!");
+                    return;
+                }
+                
+                users[userIndex].balance = (users[userIndex].balance || 0) - amount;
+                secureSetItem('gameUsers', users);
+                
+                if (currentUser && currentUser.phone === phone) {
+                    currentBalance = users[userIndex].balance;
+                    updateAllDisplays();
+                }
+                
+                recordTransaction(phone, 'withdraw', amount, 'Admin deducted balance');
+                loadUsers();
+                alert(`Balance deducted successfully! ${amount.toLocaleString()} deducted from ${phone}`);
+            }
+        }
+
+        function searchUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const users = secureGetItem('gameUsers') || [];
+            const filteredUsers = users.filter(user => 
+                user.phone.toLowerCase().includes(searchTerm)
+            );
+            
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            
+            if (filteredUsers.length === 0) {
+                userList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No users found</div>';
+                return;
+            }
+            
+            filteredUsers.forEach(user => {
+                const lastLogin = user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never';
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-phone">${user.phone}</div>
+                        <div class="user-balance">${(user.balance || 0).toLocaleString()} ကျပ်</div>
+                        <div class="user-details">Last Login: ${lastLogin}</div>
+                    </div>
+                    <div class="admin-controls">
+                        <input type="number" class="admin-input" id="balance-${user.phone}" value="1000" min="1">
+                        <button class="add-balance-btn" onclick="addBalanceToPhone('${user.phone}')">ဖြည့်မည်</button>
+                        <button class="deduct-balance-btn" onclick="deductBalanceFromPhone('${user.phone}')">နှုတ်မည်</button>
+                    </div>
+                `;
+                userList.appendChild(userItem);
+            });
+        }
+
+        function loadAllTransactions() {
+            const transactions = secureGetItem('gameTransactions') || [];
+            const transactionList = document.getElementById('transactionList');
+            
+            transactionList.innerHTML = '';
+            
+            if (transactions.length === 0) {
+                transactionList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No transactions yet</div>';
+                return;
+            }
+            
+            transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            transactions.forEach(transaction => {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'transaction-item';
+                transactionItem.innerHTML = `
+                    <div>
+                        <div><strong>${transaction.phone}</strong></div>
+                        <div style="font-size: 12px; color: #666;">${new Date(transaction.timestamp).toLocaleString()}</div>
+                        <div>${transaction.description}</div>
+                    </div>
+                    <div class="transaction-type ${transaction.type}">
+                        ${transaction.type === 'deposit' ? '+' : transaction.type === 'withdraw' ? '-' : ''}${transaction.amount.toLocaleString()} ကျပ်
+                    </div>
+                `;
+                transactionList.appendChild(transactionItem);
+            });
+        }
+
+        function loadStatistics() {
+            updateAdminStats();
+            loadAllTransactions();
+        }
+
+        function loadPendingDeposits() {
+            const pendingDeposits = secureGetItem('pendingDeposits') || [];
+            const pendingList = document.getElementById('pendingDepositsList');
+            
+            pendingList.innerHTML = '';
+            
+            if (pendingDeposits.length === 0) {
+                pendingList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No pending deposits</div>';
+                return;
+            }
+            
+            const pending = pendingDeposits.filter(deposit => deposit.status === 'pending');
+            
+            if (pending.length === 0) {
+                pendingList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No pending deposits</div>';
+                return;
+            }
+            
+            pending.forEach(deposit => {
+                const depositItem = document.createElement('div');
+                depositItem.className = 'transaction-item';
+                depositItem.innerHTML = `
+                    <div>
+                        <div><strong>${deposit.phone}</strong> - ${deposit.method.toUpperCase()}</div>
+                        <div style="font-size: 12px; color: #666;">Ref: ${deposit.refNumber} | ${new Date(deposit.timestamp).toLocaleString()}</div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="transaction-type pending">${deposit.amount.toLocaleString()} ကျပ်</div>
+                        <button class="add-balance-btn" onclick="approveDeposit('${deposit.phone}', ${deposit.amount}, '${deposit.refNumber}')">Approve</button>
+                        <button class="deduct-balance-btn" onclick="rejectDeposit('${deposit.phone}', '${deposit.refNumber}')">Reject</button>
+                    </div>
+                `;
+                pendingList.appendChild(depositItem);
+            });
+        }
+
+        function loadResultHistory() {
+            updateResultHistory();
+        }
+
+        function approveDeposit(phone, amount, refNumber) {
+            let users = secureGetItem('gameUsers') || [];
+            const userIndex = users.findIndex(u => u.phone === phone);
+            
+            if (userIndex !== -1) {
+                users[userIndex].balance = (users[userIndex].balance || 0) + amount;
+                secureSetItem('gameUsers', users);
+                
+                if (currentUser && currentUser.phone === phone) {
+                    currentBalance = users[userIndex].balance;
+                    updateAllDisplays();
+                }
+                
+                let pendingDeposits = secureGetItem('pendingDeposits') || [];
+                pendingDeposits = pendingDeposits.filter(deposit => 
+                    !(deposit.phone === phone && deposit.refNumber === refNumber && deposit.status === 'pending')
+                );
+                secureSetItem('pendingDeposits', pendingDeposits);
+                
+                recordTransaction(phone, 'deposit', amount, `Deposit approved - Ref: ${refNumber}`);
+                loadPendingDeposits();
+                alert(`Deposit approved! ${amount.toLocaleString()} added to ${phone}`);
+            }
+        }
+
+        function rejectDeposit(phone, refNumber) {
+            let pendingDeposits = secureGetItem('pendingDeposits') || [];
+            pendingDeposits = pendingDeposits.filter(deposit => 
+                !(deposit.phone === phone && deposit.refNumber === refNumber && deposit.status === 'pending')
+            );
+            secureSetItem('pendingDeposits', pendingDeposits);
+            
+            recordTransaction(phone, 'info', 0, `Deposit rejected - Ref: ${refNumber}`);
+            loadPendingDeposits();
+            alert(`Deposit rejected for ${phone}`);
+        }
+
+        function addBalanceToUser() {
+            const phone = document.getElementById('targetPhone').value.trim();
+            const amount = parseInt(document.getElementById('balanceToAdd').value) || 0;
+            
+            if (!phone) {
+                alert("ကျေးဇူးပြု၍ ဖုန်းနံပါတ်ထည့်ပါ");
+                return;
+            }
+            
+            if (amount <= 0) {
+                alert("ကျေးဇူးပြု၍ ငွေပမာဏထည့်ပါ");
+                return;
+            }
+            
+            addBalanceToPhone(phone);
+        }
+
+        function deductBalanceFromUser() {
+            const phone = document.getElementById('targetPhone').value.trim();
+            const amount = parseInt(document.getElementById('balanceToAdd').value) || 0;
+            
+            if (!phone) {
+                alert("ကျေးဇူးပြု၍ ဖုန်းနံပါတ်ထည့်ပါ");
+                return;
+            }
+            
+            if (amount <= 0) {
+                alert("ကျေးဇူးပြု၍ ငွေပမာဏထည့်ပါ");
+                return;
+            }
+            
+            deductBalanceFromPhone(phone);
+        }
+
+        function filterTransactionsByDate() {
+            console.log("Date filter functionality");
+        }
+
+        function clearDateFilter() {
+            console.log("Clear date filter functionality");
+        }
+
+        // Data Encryption Functions
+        function encryptData(data) {
+            try {
+                const jsonString = JSON.stringify(data);
+                const encoded = btoa(unescape(encodeURIComponent(jsonString)));
+                return btoa(encoded + SECURITY_CONFIG.encryptionKey).split('').reverse().join('');
+            } catch (error) {
+                console.error("Encryption error:", error);
+                return data;
+            }
+        }
+
+        function decryptData(encryptedData) {
+            try {
+                const reversed = encryptedData.split('').reverse().join('');
+                const decoded = atob(reversed);
+                const withoutKey = decoded.replace(SECURITY_CONFIG.encryptionKey, '');
+                const jsonString = decodeURIComponent(escape(atob(withoutKey)));
+                return JSON.parse(jsonString);
+            } catch (error) {
+                console.error("Decryption error:", error);
+                try {
+                    return JSON.parse(encryptedData);
+                } catch {
+                    return [];
+                }
+            }
+        }
+
+        // Enhanced LocalStorage functions
+        function secureSetItem(key, data) {
+            const encrypted = encryptData(data);
+            localStorage.setItem(key, encrypted);
+        }
+
+        function secureGetItem(key) {
+            const encrypted = localStorage.getItem(key);
+            if (!encrypted) return null;
+            return decryptData(encrypted);
+        }
+
+        // Lottery Tab Switching
+        document.querySelectorAll('.time-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const timeName = this.getAttribute('data-time');
+                
+                // Update active time tab
+                document.querySelectorAll('.time-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding content
+                document.querySelectorAll('.time-lottery-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(timeName + 'Section').classList.add('active');
+                
+                // Reset selection when switching tabs
+                selectedNumber = null;
+                document.getElementById('selectedNumberDisplay').textContent = 'မရွေးရသေးပါ';
+            });
+        });
+
+        // Lottery Type Tab Switching
+        document.querySelectorAll('.lottery-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const lotteryName = this.getAttribute('data-lottery');
+                const timeSection = this.closest('.time-lottery-section').id.replace('Section', '');
+                
+                // Update active lottery tab in current time section
+                this.closest('.lottery-tabs').querySelectorAll('.lottery-tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Show corresponding lottery content
+                const lotteryContents = this.closest('.time-lottery-section').querySelectorAll('.tab-content');
+                lotteryContents.forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(timeSection + lotteryName.charAt(0).toUpperCase() + lotteryName.slice(1)).classList.add('active');
+                
+                // Reset selection
+                selectedNumber = null;
+                document.getElementById('selectedNumberDisplay').textContent = 'မရွေးရသေးပါ';
+            });
+        });
+
+        // Place Bet Button Event
+        document.getElementById('placeBet').addEventListener('click', placeLotteryBet);
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            initializeSounds();
+            
+            // Check for auto login
+            setTimeout(() => {
+                if (!checkAutoLogin()) {
+                    console.log("Auto login not available or failed");
+                }
+            }, 500);
+            
+            console.log("Game Center v2.1 loaded successfully!");
+            console.log(" Enhanced Security: Data Encryption Enabled");
+            console.log(" PWA Features: Install as App Available");
+            console.log(" Lottery System: 12:01 & 4:30 Time Slots");
+            console.log(" 1-Digit & 2-Digit Lottery Available");
+            console.log(" Admin Panel: Complete Lottery Bet Tracking");
+            console.log(" Result Input System: Morning & Evening Results");
+            console.log(" Automatic Win Calculation");
+            console.log(" Wallet Integration: Real-time Balance Updates");
+            console.log(" Auto Login: Phone number remembered");
+            console.log(" Admin Password: Hnin462023");
+        });
+
+    </script>
+</body>
+</html>
